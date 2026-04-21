@@ -34,10 +34,9 @@ async function apiGet(action) {
 }
 
 async function apiPost(body) {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  // Apps Script redirect workaround: encode body as URL param via GET
+  const encoded = encodeURIComponent(JSON.stringify(body));
+  const res = await fetch(API_URL + "?body=" + encoded);
   return res.json();
 }
 
@@ -113,10 +112,10 @@ export default function App() {
     setSaving(true);
     try {
       if (selected) {
-        await apiPost({ action: "updatePost", row: selected.row, data: form });
+        await apiCall({ action: "updatePost", row: selected.row, data: form });
         showToast("Post aggiornato ✓");
       } else {
-        await apiPost({ action: "addPost", data: form });
+        await apiCall({ action: "addPost", data: form });
         showToast("Post aggiunto ✓");
       }
       await loadPosts();
@@ -132,7 +131,7 @@ export default function App() {
   const handleDelete = async (post) => {
     if (!window.confirm("Eliminare questo post?")) return;
     try {
-      await apiPost({ action: "deletePost", row: post.row });
+      await apiCall({ action: "deletePost", row: post.row });
       showToast("Post eliminato");
       await loadPosts();
       setView("lista");
