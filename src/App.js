@@ -26,16 +26,16 @@ const PIATTAFORMA_ICONS = {
 };
 
 // ─── API CALLS ────────────────────────────────────────────
-async function apiGet(action) {
-  const res = await fetch(`${API_URL}?action=${action}`);
+async function apiCall(params) {
+  const qs = Object.entries(params)
+    .map(([k, v]) => k + "=" + encodeURIComponent(typeof v === "object" ? JSON.stringify(v) : v))
+    .join("&");
+  const res = await fetch(API_URL + "?" + qs);
   return res.json();
 }
 
-async function apiPost(body) {
-  // Apps Script redirect workaround: encode body as URL param via GET
-  const encoded = encodeURIComponent(JSON.stringify(body));
-  const res = await fetch(API_URL + "?body=" + encoded);
-  return res.json();
+async function apiGet(action) {
+  return apiCall({ action });
 }
 
 // ─── UPLOAD FOTO SU DRIVE tramite Apps Script ─────────────
@@ -45,22 +45,13 @@ async function uploadFotoDrive(file) {
     reader.onload = async (e) => {
       try {
         const base64 = e.target.result.split(",")[1];
-        const res = await fetch(API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "uploadFoto",
-            fileName: file.name,
-            mimeType: file.type,
-            base64Data: base64,
-            folderId: DRIVE_FOLDER_ID,
-          }),
+        const data = await apiCall({
+          action: "uploadFoto",
+          data: { fileName: file.name, mimeType: file.type, base64Data: base64 },
         });
-        const data = await res.json();
         if (data.url) resolve(data.url);
         else reject(new Error(data.error || "Upload fallito"));
-      } catch (err) {
-        reject(err);
-      }
+      } catch (err) { reject(err); }
     };
     reader.readAsDataURL(file);
   });
