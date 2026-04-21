@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 // ─── CONFIG ───────────────────────────────────────────────
-const API_URL = "https://script.google.com/macros/s/AKfycby-ChHyRe0Snv-Qz3zerG9C2ZcRq1oIfEtbfRcbym8Cvjmj-9vHwHXVRA745MipF8jZQQ/exec";
+const API_URL = "/api/proxy";
 
 // Cartella Google Drive dove caricare le foto (cambia con il tuo folder ID)
-const DRIVE_FOLDER_ID = "root";
-
 const PIATTAFORME = ["Instagram", "Facebook", "Entrambi", "TikTok (manuale)"];
 const TEMI = ["Trail / Outdoor", "Struttura e servizi", "Evento locale", "Stagionale", "Offerta speciale", "TerraVivae", "Behind the scenes"];
 const LUNGHEZZE = ["Breve (2-3 righe)", "Medio (4-6 righe)", "Lungo (7-10 righe)"];
