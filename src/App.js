@@ -45,10 +45,13 @@ async function uploadFotoDrive(file) {
     reader.onload = async (e) => {
       try {
         const base64 = e.target.result.split(",")[1];
-        const data = await apiCall({
-          action: "uploadFoto",
-          data: { fileName: file.name, mimeType: file.type, base64Data: base64 },
+        // Usa POST perché il base64 è troppo grande per un URL GET
+        const res = await fetch(API_URL + "?action=uploadFoto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: file.name, mimeType: file.type, base64Data: base64 }),
         });
+        const data = await res.json();
         if (data.url) resolve(data.url);
         else reject(new Error(data.error || "Upload fallito"));
       } catch (err) { reject(err); }
