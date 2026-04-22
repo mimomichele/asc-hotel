@@ -333,7 +333,7 @@ function ListaView({ posts, filterStato, setFilterStato, onEdit, onDelete }) {
 
 // ─── POST CARD ────────────────────────────────────────────
 function PostCard({ post, onEdit, onDelete }) {
-  const sc = STATO_COLORS[post.stato] || STATO_COLORS["Da fare"];
+  const sc = STATO_COLORS[post.stato] || { bg: "#f1f3f5", color: "#6c757d" };
   // 3) Fallback: se non c'è testo Claude, usa quello manuale
   const testoEffettivo = post.postGenerato || post.testoManuale;
   return (
@@ -419,7 +419,7 @@ function CalendarioView({ posts, currentMonth, setCurrentMonth, onEdit, onDayCli
             >
               <div style={styles.calDayNum}>{day}</div>
               {dayPosts.map(p => {
-                const sc = STATO_COLORS[p.stato] || {};
+                const sc = STATO_COLORS[p.stato] || { bg: "#f1f3f5", color: "#6c757d" };
                 return (
                   <div
                     key={p.row}
