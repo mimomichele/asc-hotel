@@ -7,15 +7,11 @@ const API_URL = "/api/proxy";
 const PIATTAFORME = ["Instagram", "Facebook", "Entrambi", "TikTok (manuale)"];
 const TEMI = ["Trail / Outdoor", "Struttura e servizi", "Evento locale", "Stagionale", "Offerta speciale", "TerraVivae", "Behind the scenes"];
 const LUNGHEZZE = ["Breve (2-3 righe)", "Medio (4-6 righe)", "Lungo (7-10 righe)"];
-const STATI = ["Da fare", "Bozza", "Pronto", "Approvato", "Pubblicato", "Errore"];
+const STATI = ["Pronto", "Approvato"];
 
 const STATO_COLORS = {
-  "Da fare":    { bg: "#f1f3f5", color: "#6c757d" },
-  "Bozza":      { bg: "#fff3cd", color: "#856404" },
   "Pronto":     { bg: "#d1ecf1", color: "#0c5460" },
   "Approvato":  { bg: "#d4edda", color: "#155724" },
-  "Pubblicato": { bg: "#cce5ff", color: "#004085" },
-  "Errore":     { bg: "#f8d7da", color: "#721c24" },
 };
 
 const PIATTAFORMA_ICONS = {
@@ -97,6 +93,12 @@ export default function App() {
   }, []);
 
   useEffect(() => { loadPosts(); }, [loadPosts]);
+
+  // Auto-refresh ogni 30 secondi
+  useEffect(() => {
+    const interval = setInterval(() => { loadPosts(); }, 30000);
+    return () => clearInterval(interval);
+  }, [loadPosts]);
 
   const handleSave = async () => {
     if (!form.data) return showToast("Inserisci la data", "err");
