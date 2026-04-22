@@ -61,7 +61,7 @@ const emptyPost = (data = "") => ({
   data, ora: "09:00", piattaforma: "Instagram",
   tema: "Trail / Outdoor", contesto: "", foto: "",
   hashtag: "", lunghezza: "Medio (4-6 righe)",
-  stato: "Da fare", note: "", testoManuale: "",
+  stato: "Pronto", note: "", testoManuale: "",
 });
 
 // ─── MAIN APP ─────────────────────────────────────────────
