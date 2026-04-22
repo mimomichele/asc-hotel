@@ -158,6 +158,22 @@ export default function App() {
     setView("nuovo");
   };
 
+  const handleApprova = async (post, testoModificato = null) => {
+    setSaving(true);
+    try {
+      const data = { stato: "Approvato" };
+      if (testoModificato !== null) data.postGenerato = testoModificato;
+      await apiCall({ action: "updatePost", row: post.row, data });
+      showToast("Post approvato ✓");
+      await loadPosts();
+      setView("lista");
+      setSelected(null);
+    } catch (e) {
+      showToast("Errore nell'approvazione", "err");
+    }
+    setSaving(false);
+  };
+
   const handleNewPost = () => {
     setSelected(null);
     setForm(emptyPost());
@@ -266,6 +282,7 @@ export default function App() {
               isEdit={!!selected}
               post={selected}
               onDelete={handleDelete}
+              onApprova={handleApprova}
               showToast={showToast}
             />
           )}
@@ -421,7 +438,7 @@ function CalendarioView({ posts, currentMonth, setCurrentMonth, onEdit, onDayCli
 }
 
 // ─── FORM VIEW ────────────────────────────────────────────
-function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, showToast }) {
+function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, onApprova, showToast }) {
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
   const fileRef = useRef();
   const [uploading, setUploading] = useState(false);
@@ -444,6 +461,8 @@ function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, showT
 
   // 3) Testo effettivo che verrà usato (Claude > manuale)
   const testoEffettivo = post?.postGenerato || form.testoManuale;
+  const [testoApprovazione, setTestoApprovazione] = useState(post?.postGenerato || "");
+  const canApprove = post && (post.stato === "Pronto" || post.stato === "Bozza") && (post.postGenerato || post.testoManuale);
 
   return (
     <div style={styles.formWrap}>
@@ -561,18 +580,42 @@ function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, showT
             />
           </Field>
 
-          {/* Testo Claude (read-only) con fallback visivo */}
-          {post?.postGenerato ? (
-            <Field label="Testo generato da Claude">
-              <div style={styles.generatedBox}>{post.postGenerato}</div>
+          {/* Sezione approvazione */}
+          {(post?.postGenerato || post?.testoManuale) && (
+            <Field label={post?.postGenerato ? "Testo generato da Claude" : "Testo manuale"}>
+              <textarea
+                style={{ ...styles.input, minHeight: 140, resize: "vertical", fontFamily: "'DM Mono', monospace", fontSize: 12,
+                  borderColor: post?.stato === "Approvato" ? "#155724" : "#e9e6df",
+                  background: post?.stato === "Approvato" ? "#d4edda" : "#f8f7f4"
+                }}
+                value={testoApprovazione || post?.postGenerato || post?.testoManuale}
+                onChange={e => setTestoApprovazione(e.target.value)}
+                placeholder="Il testo generato da Claude apparirà qui..."
+              />
+              {post?.stato !== "Approvato" && post?.stato !== "Pubblicato" && (
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button
+                    style={{ ...styles.approvaBtn, flex: 1 }}
+                    onClick={() => onApprova(post, testoApprovazione || post?.postGenerato || post?.testoManuale)}
+                    disabled={saving}
+                  >
+                    ✓ Approva e pubblica
+                  </button>
+                  <button
+                    style={{ ...styles.approvaOutlineBtn }}
+                    onClick={() => setTestoApprovazione(post?.postGenerato || post?.testoManuale)}
+                  >
+                    ↩ Reset
+                  </button>
+                </div>
+              )}
+              {post?.stato === "Approvato" && (
+                <div style={{ fontSize: 11, color: "#155724", marginTop: 6, fontWeight: 500 }}>
+                  ✓ Approvato — in attesa di pubblicazione
+                </div>
+              )}
             </Field>
-          ) : form.testoManuale ? (
-            <Field label="Testo che verrà usato (manuale)">
-              <div style={{ ...styles.generatedBox, borderColor: "#fff3cd", background: "#fffbef" }}>
-                {form.testoManuale}
-              </div>
-            </Field>
-          ) : null}
+          )}
         </div>
       </div>
 
@@ -666,5 +709,7 @@ const styles = {
   formActions: { display: "flex", gap: 12, paddingTop: 8, borderTop: "1px solid #e9e6df" },
   saveBtn: { padding: "11px 28px", borderRadius: 8, border: "none", background: "#1a1a2e", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" },
   dangerBtn: { padding: "11px 20px", borderRadius: 8, border: "1px solid #f8d7da", background: "#fff", color: "#721c24", fontSize: 13, cursor: "pointer" },
+  approvaBtn: { padding: "11px 20px", borderRadius: 8, border: "none", background: "#155724", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" },
+  approvaOutlineBtn: { padding: "11px 14px", borderRadius: 8, border: "1px solid #e9e6df", background: "#fff", color: "#666", fontSize: 13, cursor: "pointer" },
   toast: { position: "fixed", bottom: 24, right: 24, padding: "12px 20px", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, zIndex: 9999 },
 };
