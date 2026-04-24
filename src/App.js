@@ -7,11 +7,12 @@ const API_URL = "/api/proxy";
 const PIATTAFORME = ["Instagram", "Facebook", "Entrambi", "TikTok (manuale)"];
 const TEMI = ["Trail / Outdoor", "Struttura e servizi", "Evento locale", "Stagionale", "Offerta speciale", "TerraVivae", "Behind the scenes"];
 const LUNGHEZZE = ["Breve (2-3 righe)", "Medio (4-6 righe)", "Lungo (7-10 righe)"];
-const STATI = ["Pronto", "Approvato"];
+const STATI = ["Pronto", "Da approvare", "Approvato"];
 
 const STATO_COLORS = {
-  "Pronto":     { bg: "#d1ecf1", color: "#0c5460" },
-  "Approvato":  { bg: "#d4edda", color: "#155724" },
+  "Pronto":        { bg: "#d1ecf1", color: "#0c5460" },
+  "Da approvare":  { bg: "#fff3cd", color: "#856404" },
+  "Approvato":     { bg: "#d4edda", color: "#155724" },
 };
 
 const PIATTAFORMA_ICONS = {
@@ -218,9 +219,15 @@ export default function App() {
           <div style={styles.stats}>
             <div style={styles.statRow}><span>Totale</span><strong>{posts.length}</strong></div>
             <div style={styles.statRow}>
-              <span>Pronti</span>
-              <strong style={{ color: "#0c5460" }}>
-                {posts.filter(p => p.stato === "Pronto" || p.stato === "Approvato").length}
+              <span>Da approvare</span>
+              <strong style={{ color: "#856404" }}>
+                {posts.filter(p => p.stato === "Da approvare").length}
+              </strong>
+            </div>
+            <div style={styles.statRow}>
+              <span>Approvati</span>
+              <strong style={{ color: "#155724" }}>
+                {posts.filter(p => p.stato === "Approvato").length}
               </strong>
             </div>
             <div style={styles.statRow}>
@@ -305,7 +312,7 @@ function ListaView({ posts, filterStato, setFilterStato, onEdit, onDelete }) {
   return (
     <div>
       <div style={styles.filterRow}>
-        {["tutti", ...STATI].map(s => (
+        {["tutti", ...STATI, "Pubblicato"].map(s => (
           <button
             key={s}
             onClick={() => setFilterStato(s)}
@@ -464,7 +471,7 @@ function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, onApp
   // 3) Testo effettivo che verrà usato (Claude > manuale)
   const testoEffettivo = post?.postGenerato || form.testoManuale;
   const [testoApprovazione, setTestoApprovazione] = useState(post?.postGenerato || "");
-  const canApprove = post && (post.stato === "Pronto" || post.stato === "Bozza") && (post.postGenerato || post.testoManuale);
+  const canApprove = post && (post.stato === "Pronto" || post.stato === "Da approvare" || post.stato === "Bozza") && (post.postGenerato || post.testoManuale);
 
   return (
     <div style={styles.formWrap}>
@@ -588,7 +595,7 @@ function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, onApp
               <textarea
                 style={{ ...styles.input, minHeight: 140, resize: "vertical", fontFamily: "'DM Mono', monospace", fontSize: 12,
                   borderColor: post?.stato === "Approvato" ? "#155724" : "#e9e6df",
-                  background: post?.stato === "Approvato" ? "#d4edda" : "#f8f7f4"
+                  background: post?.stato === "Approvato" ? "#d4edda" : post?.stato === "Da approvare" ? "#fff3cd" : "#f8f7f4"
                 }}
                 value={testoApprovazione || post?.postGenerato || post?.testoManuale}
                 onChange={e => setTestoApprovazione(e.target.value)}
@@ -614,6 +621,11 @@ function FormView({ form, setForm, onSave, saving, isEdit, post, onDelete, onApp
               {post?.stato === "Approvato" && (
                 <div style={{ fontSize: 11, color: "#155724", marginTop: 6, fontWeight: 500 }}>
                   ✓ Approvato — in attesa di pubblicazione
+                </div>
+              )}
+              {post?.stato === "Da approvare" && (
+                <div style={{ fontSize: 11, color: "#856404", marginTop: 6, fontWeight: 500 }}>
+                  ⏳ Testo generato da Claude — revisiona e approva
                 </div>
               )}
             </Field>
